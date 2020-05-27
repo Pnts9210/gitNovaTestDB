@@ -12,12 +12,12 @@ public class Init {
 
 
 
-    public void createCustomerObjects(int customerAmount){
+    public void createUserObjects(int customerAmount){
         for(int i = 0; i < customerAmount; i++)
             userArr.add(new User());
     }
 
-    public void createDB(boolean makeFakeData, int howMany) throws SQLException {
+    public void createData(boolean makeFakeData, int howMany) throws SQLException {
         Connection connection = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
 
         try {
@@ -290,7 +290,6 @@ public class Init {
             }
         }
     }
-
 
     public void createSchema(boolean makeFakeData, int howMany) throws SQLException {
         Connection connection = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
@@ -586,76 +585,102 @@ public class Init {
         }
     }
 
-    public void setApplicantsValues(String ssn, String applicantGroupId, String firstName, String lastName, String email, String phoneNr, String address, String dek ) throws SQLException{
+    public void setApplicantsValues() throws SQLException{
 
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
-        try {
-            con.setAutoCommit(false);
-            PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.applicants" +
-                    "(" +
-                    "hashed_ssn, " +
-                    "applicant_group_id, " +
-                    "first_name, " +
-                    "last_name, " +
-                    "ssn, " +
-                    "email, " +
-                    "phone_number, " +
-                    "address, " +
-                    "dek" +
-                    ")" +
-                    "VALUES(?,?,?,?,?,?,?,?,?)");
-            stmt.setString(1, ssn);
-            stmt.setString(2, applicantGroupId);
-            stmt.setString(3, firstName);
-            stmt.setString(4, lastName);
-            stmt.setString(5, ssn);
-            stmt.setString(6, email);
-            stmt.setString(7, phoneNr);
-            stmt.setString(8, address);
-            stmt.setString(9, dek);
-            stmt.executeUpdate();
-            con.commit();
 
-        } catch (Exception e) {
-            System.out.println("Error:" + e.getMessage());
-            con.rollback();
-            System.out.println("Rollback!!");
-        } finally {
-            con.setAutoCommit(true);
-            con.close();
+            try {
+                for (User user : userArr) {
 
-        }
+                    con.setAutoCommit(false);
+                    PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.applicants" +
+                            "(" +
+                            "hashed_ssn, " +
+                            "applicant_group_id, " +
+                            "first_name, " +
+                            "last_name, " +
+                            "ssn, " +
+                            "email, " +
+                            "phone_number, " +
+                            "address, " +
+                            "dek" +
+                            ")" +
+                            "VALUES(?,?,?,?,?,?,?,?,?)");
+                    stmt.setString(1, user.getPersonNr());
+                    stmt.setString(2, "0");
+                    stmt.setString(3, user.getFirstName());
+                    stmt.setString(4, user.getLastName());
+                    stmt.setString(5, user.getPersonNr());
+                    stmt.setString(6, user.getEmail());
+                    stmt.setString(7, user.getPhoneNr());
+                    stmt.setString(8, user.getAddress());
+                    stmt.setString(9, "secureHashNumber");
+                    stmt.executeUpdate();
+                }
+                con.commit();
+            } catch (Exception e) {
+                System.out.println("Error:" + e.getMessage());
+                con.rollback();
+                System.out.println("Rollback!!");
+            } finally {
+                con.setAutoCommit(true);
+                con.close();
+
+            }
+
     }
 
-    public void setApplicationsValues(int amount, int desiredMonthlyPayment, int term) throws SQLException{
+    public void setApplicationsValues() throws SQLException{
 
+        Faker faker = new Faker(new Locale("sv-SE"));
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
-        try {
-            con.setAutoCommit(false);
-            PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.applications" +
-                    "(" +
-                    "timestamp, " +
-                    "amount, " +
-                    "desired_monthly_payment, " +
-                    "term" +
-                    ")" +
-                    "VALUES(?,?,?,?)");
-            stmt.setTimestamp(1, randomDate());
-            stmt.setInt(2, amount);
-            stmt.setInt(3, desiredMonthlyPayment);
-            stmt.setInt(4, term);
-            stmt.executeUpdate();
-            con.commit();
+        int amountOfApplicants = 0;
+        int applicant_id = 1;
 
+
+        try {
+            ResultSet resultSet = con.createStatement().executeQuery("select applicant_id from nova_test_schema.applicants;");
+            while (resultSet.next()) {
+                amountOfApplicants = resultSet.getInt("applicant_id");
+            }
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());
-            con.rollback();
-            System.out.println("Rollback!!");
-        } finally {
-            con.setAutoCommit(true);
-            con.close();
-
         }
+
+            try {
+                con.setAutoCommit(false);
+                for(int i=0; i < amountOfApplicants; i++) {
+                    int loopCounter = 0;
+                    do {
+                        PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.applications" +
+                                "(" +
+                                "applicant_id, " +
+                                "timestamp, " +
+                                "amount, " +
+                                "desired_monthly_payment, " +
+                                "term" +
+                                ")" +
+                                "VALUES(?,?,?,?,?)");
+                        stmt.setInt(1, applicant_id);
+                        stmt.setTimestamp(2, randomDate());
+                        stmt.setInt(3, faker.number().numberBetween(10000, 1000000));
+                        stmt.setInt(4, faker.number().numberBetween(100, 10000));
+                        stmt.setInt(5, faker.number().numberBetween(1, 50));
+                        stmt.executeUpdate();
+                        loopCounter++;
+                    } while (randomInt(1, 3) != 1 && loopCounter < 5);
+                    applicant_id++;
+                }
+                con.commit();
+
+            } catch (Exception e) {
+                System.out.println("Error:" + e.getMessage());
+                con.rollback();
+                System.out.println("Rollback!!");
+            } finally {
+                con.setAutoCommit(true);
+                con.close();
+            }
     }
 
     public void setCustomersValues(int amount, int desiredMonthlyPayment, int term) throws SQLException{
@@ -791,6 +816,33 @@ public class Init {
         //Date date = new Date(ms);
         return new Timestamp(ms);
 
+    }
+
+    public void showUserArr(){
+        for (User u : userArr) {
+            System.out.println(u.getFirstName());
+        }
+    }
+
+    public void showData() throws SQLException{
+        Connection connection = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
+        try {
+            ResultSet resultSet = connection.createStatement().executeQuery("select * from nova_test_schema.applicants;");
+            while (resultSet.next()) {
+                System.out.println(resultSet.getString("first_name"));
+            }
+        } catch (Exception e) {
+            System.out.println("Error:" + e.getMessage());
+        } finally {
+            connection.close();
+        }
+
+
+    }
+
+    public int randomInt(int minInt, int maxInt){
+        Faker faker = new Faker();
+        return faker.number().numberBetween(minInt, maxInt);
     }
 
 }
