@@ -706,20 +706,34 @@ public class Init {
         }
     }
 
-    public void setOffersValues(int offeredCreditAmount, double offeredInterestRate) throws SQLException{
+    public void setOffersValues() throws SQLException{
+
+        Faker faker = new Faker();
 
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
+
+
         try {
-            con.setAutoCommit(false);
-            PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.offers" +
-                    "(" +
-                    "offered_credit_amount, " +
-                    "offered_interest_rate " +
-                    ")" +
-                    "VALUES(?,?)");
-            stmt.setInt(1, offeredCreditAmount);
-            stmt.setDouble(2, offeredInterestRate);
-            stmt.executeUpdate();
+            ResultSet resultSet = con.createStatement().executeQuery("select * from nova_test_schema.credit_information;");
+            while (resultSet.next()) {
+                int offeredCreditAmount = faker.number().numberBetween(10000, 1000000);
+                double offeredInterestRate = faker.number().numberBetween(1, 30) / 100.0;
+                int appId = resultSet.getInt("application_id");
+                if (resultSet.getString("response").equals("yes")) {
+                    con.setAutoCommit(false);
+                    PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.offers" +
+                            "(" +
+                            "application_id, " +
+                            "offered_credit_amount, " +
+                            "offered_interest_rate " +
+                            ")" +
+                            "VALUES(?,?,?)");
+                    stmt.setInt(1, appId);
+                    stmt.setInt(2, offeredCreditAmount);
+                    stmt.setDouble(3, offeredInterestRate);
+                    stmt.executeUpdate();
+                }
+            }
             con.commit();
 
         } catch (Exception e) {
@@ -760,18 +774,40 @@ public class Init {
         }
     }
 
-    public void setCreditInformationValues(String response) throws SQLException{
-
+    public void setCreditInformationValues() throws SQLException{
+        String response = "";
+        int amountOfApplicationIds = 0;
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
+
+        try {
+            ResultSet resultSet = con.createStatement().executeQuery("select application_id from nova_test_schema.applications;");
+            while (resultSet.next()) {
+                amountOfApplicationIds = resultSet.getInt("application_id");
+            }
+        } catch (Exception e) {
+            System.out.println("Error:" + e.getMessage());
+        }
+
         try {
             con.setAutoCommit(false);
-            PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.credit_information" +
-                    "(" +
-                    "response" +
-                    ")" +
-                    "VALUES(?)");
-            stmt.setString(1, response);
-            stmt.executeUpdate();
+            for(int i=1; i <= amountOfApplicationIds; i++) {
+                int randomNum = randomInt(1,4);
+                if (randomNum == 1)
+                    response = "no";
+                else
+                    response = "yes";
+
+                PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.credit_information" +
+                        "(" +
+                        "application_id," +
+                        "response" +
+                        ")" +
+                        "VALUES(?, ?)");
+                stmt.setInt(1, i);
+                stmt.setString(2, response);
+                stmt.executeUpdate();
+
+            }
             con.commit();
 
         } catch (Exception e) {
