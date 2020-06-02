@@ -50,7 +50,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "Customer{" +
+        return "User  " +
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", personNr='" + personNr + '\'' +
