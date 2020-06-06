@@ -1,9 +1,8 @@
 import com.github.javafaker.Faker;
 
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.Locale;
 
 public class Init {
     private final String url = "jdbc:postgresql:nova_test_db";
@@ -521,38 +520,40 @@ public class Init {
 
     private void setCustomersValues() throws SQLException{
 
-        int applicantId = 0;
-        int applicationId = 0;
-        int offerID = 0;
-
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
         con.setAutoCommit(false);
         try {
-            ResultSet result = con.createStatement().executeQuery("SELECT * from nova_test_schema.bookings");
+            ResultSet result = con.createStatement().executeQuery("SELECT offer_id from nova_test_schema.bookings");
+            List<Integer> offerIds = new ArrayList<>();
             while(result.next()) {
-                offerID = result.getInt("offer_id");
-                ResultSet resultSet = con.createStatement().executeQuery("select * from nova_test_schema.offers WHERE offer_id = " + offerID + ";");
-                while (resultSet.next()) {
-                    applicationId = resultSet.getInt(("application_id"));
-
-                    ResultSet resultSet2 = con.createStatement().executeQuery("SELECT applicant_id FROM nova_test_schema.applications WHERE application_id = " + applicationId + ";");
-                    while (resultSet2.next())
-                        applicantId = resultSet2.getInt(("applicant_id"));
-
-                    ResultSet exist = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.customers WHERE applicant_id = " + applicantId + ";");
-                    //************************VARFÖR BLIR DET FLERA CUSTOMERS PÅ SAMMA APPLICANT??****************************
-                    if (exist.getRow() == 0) {
-                        PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.customers(start_date, applicant_id) VALUES(?,?) ");
-                        stmt.setTimestamp(1, generateTimestamp(false,2017,2021, "random"));
-                        stmt.setInt(2, applicantId);
-                        stmt.executeUpdate();
-                        con.commit();
-                    }
-
-
-                }
+                offerIds.add(result.getInt("offer_id"));
             }
-                con.commit();
+            List <Integer> applicationIds = new ArrayList<>();
+            for (Integer offerId : offerIds) {
+                PreparedStatement statement = con.prepareStatement("select application_id from nova_test_schema.offers WHERE offer_id = ?");
+                statement.setInt(1, offerId);
+                ResultSet resultSet = statement.executeQuery();
+                resultSet.next();
+                applicationIds.add(resultSet.getInt("application_id"));
+            }
+
+            // Set innehåller bara unika värden
+            Set<Integer> applicantIds = new HashSet<>();
+            for (Integer applicantionId: applicationIds) {
+                PreparedStatement statement = con.prepareStatement("select applicant_id from nova_test_schema.applications WHERE application_id = ?");
+                statement.setInt(1, applicantionId);
+                ResultSet resultSet = statement.executeQuery();
+                resultSet.next();
+                applicantIds.add(resultSet.getInt("applicant_id"));
+            }
+
+            for (Integer applicantId: applicantIds) {
+                PreparedStatement preparedStatement = con.prepareStatement("INSERT INTO nova_test_schema.customers(start_date, applicant_id) VALUES(?,?)");
+                preparedStatement.setTimestamp(1, generateTimestamp(false,2017,2021, "random"));
+                preparedStatement.setInt(2, applicantId);
+                preparedStatement.executeUpdate();
+            }
+            con.commit();
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());
             con.rollback();
@@ -560,7 +561,6 @@ public class Init {
         } finally {
             con.setAutoCommit(true);
             con.close();
-
         }
     }
 
@@ -726,7 +726,7 @@ public class Init {
                 long ocrInt = faker.number().numberBetween(10000000, 100000000);
                 String ocr = "" + ocrInt;
                 int loops = 0;
-                int year = randomInt(2016, 2021 + 1);
+                int year = randomInt(2016, 2020);
                 int month = randomInt(1, 12);
 
                 while (loops < term) {

@@ -32,7 +32,7 @@ public class Metoder {
 
 
             resultSet = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.invoices");
-            int customerId = 0;
+            int customerId = 1;
             while (resultSet.next()) {
                 Timestamp dueDate = resultSet.getTimestamp("due_date");
                 Date date = new Date();
@@ -72,8 +72,12 @@ public class Metoder {
         }
     }
 
-    public ArrayList getOverdueCustomerId() throws SQLException{
-        /**Metoden retunerar en ArrayList men alla customer id där summan av utgångna invoices är mindre än deras transactions.*/
+    /**
+     Metoden retunerar en ArrayList men alla customer id där summan av utgångna invoices är mindre än deras transactions.
+     * @return ArrayList<Integer>
+     * @throws SQLException
+     */
+    public ArrayList<Integer> getOverdueCustomerId() throws SQLException{
         setHashMaps();
         ArrayList<Integer> lateCustomer_id = new ArrayList<>();
 
@@ -95,8 +99,6 @@ public class Metoder {
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
 
         try {
-
-
 
             ResultSet resultSet1 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.applicants");
             while (resultSet1.next()) {
@@ -122,7 +124,7 @@ public class Metoder {
                 HashMap<Integer,Integer> bookingAndOfferIDs = new HashMap<>();
 
                 //CUSTOMERS
-                ArrayList customerIDs = new ArrayList<>();
+                int customerID = 0;
 
                 //invoices
                 HashMap<Integer,Integer> invoiceAndBookingId = new HashMap<>();
@@ -164,17 +166,17 @@ public class Metoder {
                             ResultSet resultSetTransactions = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.transactions WHERE booking_id =" + bookingID+";");
                             while(resultSetTransactions.next()){
                                 int transactionID = resultSetTransactions.getInt("transaction_id");
-                                int customerID = resultSetTransactions.getInt("customer_id");
+                                customerID = resultSetTransactions.getInt("customer_id");
                                 transactionAndBookingIDs.put(transactionID, bookingID);
                                 transactionAndCustomerIDs.put(transactionID, customerID);
                             }
                         }
                         ResultSet resultSetCustomer = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.customers WHERE applicant_id =" + applicantID+";");
                         while(resultSetCustomer.next()){
-                            customerIDs.add(resultSetCustomer.getInt("customer_id"));
+                            customerID = resultSetCustomer.getInt("customer_id");
                         }
                     }
-                    allCustomers.add(new Customer(firstName,lastName,applicantID,applicationsIDs,informationAndApplicationIDs,offerAndApplicationIDs,bookingAndOfferIDs,customerIDs,invoiceAndBookingId,transactionAndCustomerIDs,transactionAndBookingIDs));
+                    allCustomers.add(new Customer(firstName,lastName,applicantID,applicationsIDs,informationAndApplicationIDs,offerAndApplicationIDs,bookingAndOfferIDs, customerID,invoiceAndBookingId,transactionAndCustomerIDs,transactionAndBookingIDs));
             }
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());

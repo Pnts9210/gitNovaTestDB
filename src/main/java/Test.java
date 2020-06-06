@@ -56,11 +56,11 @@ public class Test {
         Init init = new Init();
         Metoder metoder = new Metoder();
 
-        init.createSchema(true, 2);
-        System.out.println(metoder.getOverdueCustomerId());
+        init.createSchema(true, 10);
+        //System.out.println(metoder.getOverdueCustomerId());
 
 
-        //System.out.println(metoder.createCustomers().toString());
+        System.out.println(metoder.createCustomers().toString());
 
 
 

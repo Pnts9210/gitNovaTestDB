@@ -16,14 +16,14 @@ public class Customer {
     //bookings
     private HashMap<Integer,Integer> bookingAndOfferIDs = new HashMap<>();
     //customer
-    private ArrayList<Integer> customerID = new ArrayList<>();
+    private int customerID;
     //invoices
     private HashMap<Integer,Integer> invoiceAndBookingId = new HashMap<>();
     //TRANSACTIONS
     private HashMap<Integer,Integer> transactionAndCustomerIDs = new HashMap<>();
     private HashMap<Integer,Integer> transactionAndBookingIDs = new HashMap<>();
 
-    public Customer(String firstName, String lastName, int applicantID, ArrayList<Integer> applicationsIDs, HashMap<Integer, Integer> informationAndApplicationIDs, HashMap<Integer, Integer> offerAndApplicationIDs, HashMap<Integer, Integer> bookingAndOfferIDs, ArrayList<Integer> customerID, HashMap<Integer, Integer> invoiceAndBookingId, HashMap<Integer, Integer> transactionAndCustomerIDs, HashMap<Integer, Integer> transactionAndBookingIDs) {
+    public Customer(String firstName, String lastName, int applicantID, ArrayList<Integer> applicationsIDs, HashMap<Integer, Integer> informationAndApplicationIDs, HashMap<Integer, Integer> offerAndApplicationIDs, HashMap<Integer, Integer> bookingAndOfferIDs, int customerID, HashMap<Integer, Integer> invoiceAndBookingId, HashMap<Integer, Integer> transactionAndCustomerIDs, HashMap<Integer, Integer> transactionAndBookingIDs) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.applicantID = applicantID;
