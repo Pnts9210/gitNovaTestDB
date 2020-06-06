@@ -2,6 +2,7 @@ import com.github.javafaker.Faker;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 public class Init {
@@ -498,7 +499,7 @@ public class Init {
                             ")" +
                             "VALUES(?,?,?,?,?)");
                     stmt.setInt(1, applicantId);
-                    stmt.setTimestamp(2, randomDate(2018,2020));
+                    stmt.setTimestamp(2, generateTimestamp(false,2016,2021, "random"));
                     stmt.setInt(3, faker.number().numberBetween(10000, 1000000));
                     stmt.setInt(4, faker.number().numberBetween(100, 10000));
                     stmt.setInt(5, faker.number().numberBetween(1, 50));
@@ -539,9 +540,10 @@ public class Init {
                         applicantId = resultSet2.getInt(("applicant_id"));
 
                     ResultSet exist = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.customers WHERE applicant_id = " + applicantId + ";");
+                    //************************VARFÖR BLIR DET FLERA CUSTOMERS PÅ SAMMA APPLICANT??****************************
                     if (exist.getRow() == 0) {
                         PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.customers(start_date, applicant_id) VALUES(?,?) ");
-                        stmt.setTimestamp(1, randomDate(2018, 2020));
+                        stmt.setTimestamp(1, generateTimestamp(false,2017,2021, "random"));
                         stmt.setInt(2, applicantId);
                         stmt.executeUpdate();
                         con.commit();
@@ -608,8 +610,8 @@ public class Init {
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
 
         int offerId = 0;
-        int bookedCreditAmount = 0;
-        double bookedInterestRate = 0.0;
+        int creditAmount =0;
+        double interestRate = 0.0;
         int randomNum = 0;
 
         try {
@@ -617,9 +619,9 @@ public class Init {
             con.setAutoCommit(false);
             while (resultSet.next()) {
                 offerId = resultSet.getInt("offer_id");
-                //applicationId = resultSet.getInt(("application_id"));
-                bookedCreditAmount = faker.number().numberBetween(10000, 1000000);
-                bookedInterestRate = faker.number().numberBetween(1, 30) / 100.0;
+                creditAmount = resultSet.getInt("offered_credit_amount");
+                interestRate = resultSet.getDouble("offered_interest_rate");
+
                 randomNum = randomInt(1, 4);
                 if (randomNum != 1) {
                     PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.bookings" +
@@ -630,8 +632,8 @@ public class Init {
                             ")" +
                             "VALUES(?,?,?)");
                     stmt.setInt(1, offerId);
-                    stmt.setInt(2, bookedCreditAmount);
-                    stmt.setDouble(3, bookedInterestRate);
+                    stmt.setInt(2, creditAmount);
+                    stmt.setDouble(3, interestRate);
                     stmt.executeUpdate();
 
                 }
@@ -694,21 +696,40 @@ public class Init {
         Faker faker = new Faker(new Locale("sv-SE"));
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
 
+        int creditAmount = 0;
+        double interestRate = 0;
+        int applicationID = 0;
+        int term = 0;
+
+
         try {
             con.setAutoCommit(false);
             ResultSet resultSet = con.createStatement().executeQuery("select * from nova_test_schema.bookings;");
             while (resultSet.next()) {
                 int bookingId = resultSet.getInt("booking_id");
-                int loopLimit = 0;
-                Double totalAmount = (double)faker.number().numberBetween(100, 10000);
-                Double interest_amount = (double)faker.number().numberBetween(1, 30) / 100;
-                Double amortization_amount = (double)faker.number().numberBetween(1, 30) / 100;
-                Double late_charge = (double)faker.number().numberBetween(50, 150) / 1;
-                Double late_interest = (double)faker.number().numberBetween(1, 30) / 100;
-                Double invoice_fee = (double)faker.number().numberBetween(50, 150) / 1;
+                int offerID = resultSet.getInt("offer_id");
+                ResultSet resultSet2 = con.createStatement().executeQuery("select * from nova_test_schema.offers WHERE offer_id = " + offerID + ";");
+                while (resultSet2.next()) {
+                    creditAmount = resultSet2.getInt("offered_credit_amount");
+                    interestRate = resultSet2.getDouble("offered_interest_rate");
+                    applicationID = resultSet2.getInt("application_id");
+                }
+                resultSet2 = con.createStatement().executeQuery("select term from nova_test_schema.applications WHERE application_id = " + applicationID + ";");
+                while (resultSet2.next()) {
+                    term = resultSet2.getInt("term");
+                }
+
+                Double amortization_amount = (double)creditAmount/term;
+                Double late_charge = 100.0;
+                Double late_interest = 0.05;
+                Double invoice_fee = 25.0;
                 long ocrInt = faker.number().numberBetween(10000000, 100000000);
                 String ocr = "" + ocrInt;
-                do {
+                int loops = 0;
+                int year = randomInt(2016, 2021 + 1);
+                int month = randomInt(1, 12);
+
+                while (loops < term) {
                     PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.invoices" +
                             "(" +
                             "booking_id, " +
@@ -727,23 +748,37 @@ public class Init {
                             "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
 
                     int prevInvoices = 1;
+                    int day = randomInt(14, 25);
+
+                    long generatedDate = Timestamp.valueOf(year + "-" + month + "-" + day + " 0:0:0").getTime();
+                    Timestamp date = new Timestamp(generatedDate);
+
+                    long generateDueDate = Timestamp.valueOf(year + "-" + month + "-25 0:0:0").getTime();
+                    Timestamp dueDate = new Timestamp(generateDueDate);
+
+
 
                     stmt.setInt(1,bookingId);
-                    stmt.setTimestamp(2, randomDate(2018,2020));
+                    stmt.setTimestamp(2, date);
                     stmt.setString(3, ocr);
-                    stmt.setDouble(4, totalAmount);
-                    stmt.setDouble(5, interest_amount);
+                    stmt.setDouble(4, creditAmount);
+                    stmt.setDouble(5, interestRate);
                     stmt.setDouble(6, amortization_amount);
                     stmt.setDouble(7, late_charge);
                     stmt.setDouble(8, late_interest);
                     stmt.setInt(9, prevInvoices);
                     stmt.setDouble(10, invoice_fee);
-                    stmt.setTimestamp(11, randomDate(2019,2021));
+                    stmt.setTimestamp(11, dueDate);
                     stmt.setString(12, "pathiPath!");
                     stmt.executeUpdate();
-                    loopLimit++;
                     prevInvoices++;
-                } while (randomInt(1, 3) != 1 && loopLimit < 5);
+                    loops++;
+                    if(month==12){
+                        month = 0;
+                        year++;
+                    }
+                    month++;
+                }
             }
             con.commit();
 
@@ -772,9 +807,9 @@ public class Init {
 
             ResultSet resultSet = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.invoices");
             while (resultSet.next()) {
-                int hasPayed = randomInt(1, 5);
+                int hasPayed = randomInt(1, 3);
                 if (hasPayed != 1){
-                    int transactionAmount = faker.number().numberBetween(100, 10000);
+
                 int randomNum = randomInt(1, 5);
                 if (randomNum == 1)
                     transactionTypeId = "mortgage";
@@ -785,27 +820,34 @@ public class Init {
                 if (randomNum == 4)
                     transactionTypeId = "outgoing";
 
-                int bookingId = resultSet.getInt("booking_id");
-                ResultSet resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.bookings WHERE booking_id = " + bookingId);
-                while (resultSet2.next())
-                    valueHolder = resultSet2.getInt("offer_id");
-                resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.offers WHERE offer_id = " + valueHolder);
-                while (resultSet2.next())
-                    valueHolder = resultSet2.getInt("application_id");
-                resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.applications WHERE application_id = " + valueHolder);
-                while (resultSet2.next())
-                    valueHolder = resultSet2.getInt("applicant_id");
-                resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.customers WHERE applicant_id = " + valueHolder);
-                while (resultSet2.next())
-                    customerId = resultSet2.getInt("customer_id");
 
-                PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.transactions(customer_id, booking_id, transaction_amount, transaction_type_id) VALUES(?,?,?,CAST(? AS nova_test_schema.transaction_types))");
-                stmt.setInt(1, customerId);
-                stmt.setInt(2, bookingId);
-                stmt.setInt(3, transactionAmount);
-                stmt.setString(4, transactionTypeId);
-                stmt.executeUpdate();
-            }
+                Timestamp dueDate = resultSet.getTimestamp("due_date");
+                Date date = new Date();
+                if (dueDate.before(new Timestamp(date.getTime()))) {
+
+                    int transactionAmount = resultSet.getInt("amortization_amount") + resultSet.getInt("invoice_fee");
+                    int bookingId = resultSet.getInt("booking_id");
+                    ResultSet resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.bookings WHERE booking_id = " + bookingId);
+                    while (resultSet2.next())
+                        valueHolder = resultSet2.getInt("offer_id");
+                    resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.offers WHERE offer_id = " + valueHolder);
+                    while (resultSet2.next())
+                        valueHolder = resultSet2.getInt("application_id");
+                    resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.applications WHERE application_id = " + valueHolder);
+                    while (resultSet2.next())
+                        valueHolder = resultSet2.getInt("applicant_id");
+                    resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.customers WHERE applicant_id = " + valueHolder);
+                    while (resultSet2.next())
+                        customerId = resultSet2.getInt("customer_id");
+
+                    PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.transactions(customer_id, booking_id, transaction_amount, transaction_type_id) VALUES(?,?,?,CAST(? AS nova_test_schema.transaction_types))");
+                    stmt.setInt(1, customerId);
+                    stmt.setInt(2, bookingId);
+                    stmt.setInt(3, transactionAmount);
+                    stmt.setString(4, transactionTypeId);
+                    stmt.executeUpdate();
+                }
+                }
             }
             con.commit();
 
@@ -820,7 +862,7 @@ public class Init {
         }
     }
 
-    private Timestamp randomDate(int startYear, int endYear) {
+    public Timestamp randomDate(int startYear, int endYear) {
 
         long start = Timestamp.valueOf(startYear+1+"-1-1 0:0:0").getTime();
         long end = Timestamp.valueOf(endYear+"-1-1 0:0:0").getTime();
@@ -828,6 +870,29 @@ public class Init {
         //Date date = new Date(ms);
         return new Timestamp(ms);
 
+    }
+
+    public Timestamp generateTimestamp(boolean includeFuture, int startYear, int endYear, String month) {
+        boolean loop = true;
+        long generatedDate = 0;
+        do{
+            int year = randomInt(startYear, endYear + 1);
+            String day = Integer.toString(randomInt(1, 28));
+            if(month.equals("random"))
+                month = Integer.toString(randomInt(1, 12));
+
+            generatedDate = Timestamp.valueOf(year + "-" + month + "-" + day + " 0:0:0").getTime();
+            Timestamp genDate = new Timestamp(generatedDate);
+
+
+            Date date = new Date();
+            if (genDate.before(new Timestamp(date.getTime()))) {
+                return genDate;
+
+            }
+
+        }while(!includeFuture);
+        return new Timestamp(generatedDate);
     }
 
     public void showUserArr(){
@@ -852,7 +917,7 @@ public class Init {
 
     }
 
-    private int randomInt(int minInt, int maxInt){
+    public int randomInt(int minInt, int maxInt){
         Faker faker = new Faker();
         return faker.number().numberBetween(minInt, maxInt);
     }

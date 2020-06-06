@@ -1,29 +1,5 @@
-/*
-import com.github.javafaker.Faker;
-import com.google.gson.Gson;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-*/
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 //import java.net.http.HttpClient;
 
 
@@ -74,26 +50,25 @@ public class Test {
         }
     }
 
-    public static void main(String[] args) throws IOException, SQLException {
-        Init init = new Init();
-        init.setOffersValues();
-        init.setBookingsValues();
-        init.setCreditInformationValues();
-        init.setTransactionValues();
+    public static void main(String[] args) throws IOException, SQLException, NullPointerException {
 
-/*
-        //*********gör en klass som heter init med med massa metoder som kör all sql från visual studio code*******
-            try (
-                    Connection connection = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
-            ) {
-                ResultSet resultSet = connection.createStatement().executeQuery("select * from applicants;");
-                while (resultSet.next()) {
-                    System.out.println(resultSet.getString("name"));
-                }
-            } catch (Exception e) {
-                System.out.println("Error:" + e.getMessage());
-            }
-*/
+
+        Init init = new Init();
+        Metoder metoder = new Metoder();
+
+        init.createSchema(true, 2);
+        System.out.println(metoder.getOverdueCustomerId());
+
+
+        //System.out.println(metoder.createCustomers().toString());
+
+
+
+
+
+
+
+
 
 
 /*

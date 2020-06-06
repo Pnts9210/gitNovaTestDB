@@ -12,7 +12,6 @@ public class User {
     private String address;
     private String phoneNr;
 
-
     public User() {
         Faker faker = new Faker(new Locale("sv-SE"));
         firstName = faker.name().firstName();
