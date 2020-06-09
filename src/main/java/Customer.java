@@ -7,6 +7,7 @@ public class Customer {
     private String lastName;
     //applicants
     private int applicantID;
+    private String email;
     //applications
     private ArrayList<Integer> applicationsIDs = new ArrayList<>();
     //credit_information
@@ -22,8 +23,9 @@ public class Customer {
     //TRANSACTIONS
     private HashMap<Integer,Integer> transactionAndCustomerIDs = new HashMap<>();
     private HashMap<Integer,Integer> transactionAndBookingIDs = new HashMap<>();
+    private HashMap<Integer,Integer> transactionAndInvoiceIDs = new HashMap<>();
 
-    public Customer(String firstName, String lastName, int applicantID, ArrayList<Integer> applicationsIDs, HashMap<Integer, Integer> informationAndApplicationIDs, HashMap<Integer, Integer> offerAndApplicationIDs, HashMap<Integer, Integer> bookingAndOfferIDs, int customerID, HashMap<Integer, Integer> invoiceAndBookingId, HashMap<Integer, Integer> transactionAndCustomerIDs, HashMap<Integer, Integer> transactionAndBookingIDs) {
+    public Customer(String firstName, String lastName, int applicantID, ArrayList<Integer> applicationsIDs, HashMap<Integer, Integer> informationAndApplicationIDs, HashMap<Integer, Integer> offerAndApplicationIDs, HashMap<Integer, Integer> bookingAndOfferIDs, int customerID, HashMap<Integer, Integer> invoiceAndBookingId, HashMap<Integer, Integer> transactionAndCustomerIDs, HashMap<Integer, Integer> transactionAndBookingIDs, HashMap<Integer,Integer> transactionAndInvoiceIDs) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.applicantID = applicantID;
@@ -35,6 +37,55 @@ public class Customer {
         this.invoiceAndBookingId = invoiceAndBookingId;
         this.transactionAndCustomerIDs = transactionAndCustomerIDs;
         this.transactionAndBookingIDs = transactionAndBookingIDs;
+        this.transactionAndInvoiceIDs = transactionAndInvoiceIDs;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public int getApplicantID() {
+        return applicantID;
+    }
+
+    public ArrayList<Integer> getApplicationsIDs() {
+        return applicationsIDs;
+    }
+
+    public HashMap<Integer, Integer> getInformationAndApplicationIDs() {
+        return informationAndApplicationIDs;
+    }
+
+    public HashMap<Integer, Integer> getOfferAndApplicationIDs() {
+        return offerAndApplicationIDs;
+    }
+
+    public HashMap<Integer, Integer> getBookingAndOfferIDs() {
+        return bookingAndOfferIDs;
+    }
+
+    public int getCustomerID() {
+        return customerID;
+    }
+
+    public HashMap<Integer, Integer> getInvoiceAndBookingId() {
+        return invoiceAndBookingId;
+    }
+
+    public HashMap<Integer, Integer> getTransactionAndCustomerIDs() {
+        return transactionAndCustomerIDs;
+    }
+
+    public HashMap<Integer, Integer> getTransactionAndBookingIDs() {
+        return transactionAndBookingIDs;
+    }
+
+    public HashMap<Integer, Integer> getTransactionAndInvoiceIDs() {
+        return transactionAndInvoiceIDs;
     }
 
     @Override
@@ -51,6 +102,7 @@ public class Customer {
                 ", invoiceAndBookingId=" + invoiceAndBookingId +
                 ", transactionAndCustomerIDs=" + transactionAndCustomerIDs +
                 ", transactionAndBookingIDs=" + transactionAndBookingIDs +
-                "\n";
+                ", transactionAndInvoiceIDs=" + transactionAndInvoiceIDs +
+                "}\n";
     }
 }

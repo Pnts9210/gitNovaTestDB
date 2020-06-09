@@ -76,15 +76,6 @@ public class Init {
                     "      'outgoing'\n" +
                     "    )");
             statement.executeUpdate();
-            statement = connection.prepareStatement("CREATE TABLE nova_test_schema.transactions\n" +
-                    "    (\n" +
-                    "      transaction_id serial PRIMARY KEY,\n" +
-                    "      customer_id serial references nova_test_schema.customers(customer_id),\n" +
-                    "      booking_id serial references nova_test_schema.bookings(booking_id),\n" +
-                    "      transaction_amount integer NOT NULL,\n" +
-                    "      transaction_type_id nova_test_schema.transaction_types NOT NULL\n" +
-                    "    )");
-            statement.executeUpdate();
             statement = connection.prepareStatement("CREATE TABLE nova_test_schema.credit_information\n" +
                     "    (\n" +
                     "      information_id serial PRIMARY KEY,\n" +
@@ -107,6 +98,16 @@ public class Init {
                     "      invoice_fee real,\n" +
                     "      due_date timestamp NOT NULL,\n" +
                     "      pdf_path varchar(80) NOT NULL\n" +
+                    "    )");
+            statement.executeUpdate();
+            statement = connection.prepareStatement("CREATE TABLE nova_test_schema.transactions\n" +
+                    "    (\n" +
+                    "      transaction_id serial PRIMARY KEY,\n" +
+                    "      customer_id serial references nova_test_schema.customers(customer_id),\n" +
+                    "      booking_id serial references nova_test_schema.bookings(booking_id),\n" +
+                    "      invoice_id serial references nova_test_schema.invoices(invoice_id),\n" +
+                    "      transaction_amount integer NOT NULL,\n" +
+                    "      transaction_type_id nova_test_schema.transaction_types NOT NULL\n" +
                     "    )");
             statement.executeUpdate();
 
@@ -720,8 +721,8 @@ public class Init {
                 }
 
                 Double amortization_amount = (double)creditAmount/term;
-                Double late_charge = 100.0;
-                Double late_interest = 0.05;
+                Double late_charge = 0.0;
+                Double late_interest = 0.0;
                 Double invoice_fee = 25.0;
                 long ocrInt = faker.number().numberBetween(10000000, 100000000);
                 String ocr = "" + ocrInt;
@@ -807,7 +808,7 @@ public class Init {
 
             ResultSet resultSet = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.invoices");
             while (resultSet.next()) {
-                int hasPayed = randomInt(1, 3);
+                int hasPayed = randomInt(1, 10);
                 if (hasPayed != 1){
 
                 int randomNum = randomInt(1, 5);
@@ -827,6 +828,8 @@ public class Init {
 
                     int transactionAmount = resultSet.getInt("amortization_amount") + resultSet.getInt("invoice_fee");
                     int bookingId = resultSet.getInt("booking_id");
+                    int invoiceId = resultSet.getInt("invoice_id");
+
                     ResultSet resultSet2 = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.bookings WHERE booking_id = " + bookingId);
                     while (resultSet2.next())
                         valueHolder = resultSet2.getInt("offer_id");
@@ -840,11 +843,12 @@ public class Init {
                     while (resultSet2.next())
                         customerId = resultSet2.getInt("customer_id");
 
-                    PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.transactions(customer_id, booking_id, transaction_amount, transaction_type_id) VALUES(?,?,?,CAST(? AS nova_test_schema.transaction_types))");
+                    PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.transactions(customer_id, booking_id, invoice_id, transaction_amount, transaction_type_id) VALUES(?,?,?,?,CAST(? AS nova_test_schema.transaction_types))");
                     stmt.setInt(1, customerId);
                     stmt.setInt(2, bookingId);
-                    stmt.setInt(3, transactionAmount);
-                    stmt.setString(4, transactionTypeId);
+                    stmt.setInt(3, invoiceId);
+                    stmt.setInt(4, transactionAmount);
+                    stmt.setString(5, transactionTypeId);
                     stmt.executeUpdate();
                 }
                 }
@@ -899,22 +903,6 @@ public class Init {
         for (User u : userArr) {
             System.out.println(u.toString());
         }
-    }
-
-    public void showData() throws SQLException{
-        Connection connection = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
-        try {
-            ResultSet resultSet = connection.createStatement().executeQuery("select * from nova_test_schema.applicants;");
-            while (resultSet.next()) {
-                System.out.println(resultSet.getString("first_name"));
-            }
-        } catch (Exception e) {
-            System.out.println("Error:" + e.getMessage());
-        } finally {
-            connection.close();
-        }
-
-
     }
 
     public int randomInt(int minInt, int maxInt){
