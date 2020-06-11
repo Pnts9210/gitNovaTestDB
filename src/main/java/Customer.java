@@ -25,10 +25,9 @@ public class Customer {
     private HashMap<Integer,Integer> transactionAndBookingIDs = new HashMap<>();
     private HashMap<Integer,Integer> transactionAndInvoiceIDs = new HashMap<>();
     //extra
-    double latePayAmount;
-    double lateCharge;
-    double lateInterest;
-    double invoiceFee;
+
+
+
 
     public Customer(String firstName, String lastName, int applicantID, String email, ArrayList<Integer> applicationsIDs, HashMap<Integer, Integer> informationAndApplicationIDs, HashMap<Integer, Integer> offerAndApplicationIDs, HashMap<Integer, Integer> bookingAndOfferIDs, int customerID, HashMap<Integer, Integer> invoiceAndBookingId, HashMap<Integer, Integer> transactionAndCustomerIDs, HashMap<Integer, Integer> transactionAndBookingIDs, HashMap<Integer, Integer> transactionAndInvoiceIDs) {
         this.firstName = firstName;
@@ -46,36 +45,9 @@ public class Customer {
         this.transactionAndInvoiceIDs = transactionAndInvoiceIDs;
     }
 
-    public double getLatePayAmount() {
-        return latePayAmount;
-    }
 
-    public void setLatePayAmount(double latePayAmount) {
-        this.latePayAmount = latePayAmount;
-    }
-
-    public double getLateCharge() {
-        return lateCharge;
-    }
-
-    public void setLateCharge(double lateCharge) {
-        this.lateCharge = lateCharge;
-    }
-
-    public double getLateInterest() {
-        return lateInterest;
-    }
-
-    public void setLateInterest(double lateInterest) {
-        this.lateInterest = lateInterest;
-    }
-
-    public double getInvoiceFee() {
-        return invoiceFee;
-    }
-
-    public void setInvoiceFee(double invoiceFee) {
-        this.invoiceFee = invoiceFee;
+    public String getEmail() {
+        return email;
     }
 
     public String getFirstName() {
@@ -142,10 +114,6 @@ public class Customer {
                 ", transactionAndCustomerIDs=" + transactionAndCustomerIDs +
                 ", transactionAndBookingIDs=" + transactionAndBookingIDs +
                 ", transactionAndInvoiceIDs=" + transactionAndInvoiceIDs +
-                ", latePayAmount=" + latePayAmount +
-                ", lateCharge=" + lateCharge +
-                ", lateInterest=" + lateInterest +
-                ", invoiceFee=" + invoiceFee +
                 "\n";
     }
 }

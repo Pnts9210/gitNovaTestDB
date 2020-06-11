@@ -55,15 +55,16 @@ public class Test {
 
         Init init = new Init();
         Metoder metoder = new Metoder();
+        //Invoice invoice = new Invoice();
 
-        //init.createSchema(true, 10);
+        init.createSchema(true, 20);
        // System.out.println(metoder.getOverdueCustomerId());
 
 
         //System.out.println(metoder.createCustomersObjects().toString());
 
         System.out.println(metoder.makeLateInvoice());
-        //metoder.makeLateInvoice();
+
 
 
 

@@ -1,8 +1,8 @@
 import com.github.javafaker.Faker;
 
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 
 public class Init {
     private final String url = "jdbc:postgresql:nova_test_db";
@@ -808,7 +808,7 @@ public class Init {
 
             ResultSet resultSet = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.invoices");
             while (resultSet.next()) {
-                int hasPayed = randomInt(1, 20);
+                int hasPayed = randomInt(1, 30);
                 if (hasPayed != 1){
 
                 int randomNum = randomInt(1, 5);
@@ -827,6 +827,9 @@ public class Init {
                 if (dueDate.before(new Timestamp(date.getTime()))) {
 
                     int transactionAmount = resultSet.getInt("amortization_amount") + resultSet.getInt("invoice_fee");
+                    int payedHalf = randomInt(1, 30);
+                    if(payedHalf == 1)
+                        transactionAmount = transactionAmount / 2;
                     int bookingId = resultSet.getInt("booking_id");
                     int invoiceId = resultSet.getInt("invoice_id");
 
@@ -909,6 +912,7 @@ public class Init {
         Faker faker = new Faker();
         return faker.number().numberBetween(minInt, maxInt);
     }
+
 
 }
 
