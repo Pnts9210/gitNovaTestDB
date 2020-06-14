@@ -808,7 +808,7 @@ public class Init {
 
             ResultSet resultSet = con.createStatement().executeQuery("SELECT * FROM nova_test_schema.invoices");
             while (resultSet.next()) {
-                int hasPayed = randomInt(1, 30);
+                int hasPayed = randomInt(1, 3);
                 if (hasPayed != 1){
 
                 int randomNum = randomInt(1, 5);

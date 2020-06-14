@@ -1,4 +1,5 @@
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 
 public class Invoice {
@@ -32,7 +33,8 @@ public class Invoice {
     private Timestamp setDuedate(){
 
         Date date = new Date();
-        if(date.getDay() > 10) {
+        Calendar calendar = new Calendar.Builder().build();
+        if(calendar.get(Calendar.DAY_OF_MONTH) < 10) {
             date.setMonth(date.getMonth() + 1);
             date.setDate(25);
         }else

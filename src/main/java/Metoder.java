@@ -92,26 +92,7 @@ public class Metoder {
         return lateCustomer_id;
     }
 
-    /**
-     Metoden retunerar en ArrayList men alla customer id där summan av utgångna invoices är mindre än deras transactions.
-     * @return ArrayList<Integer>
-     * @throws SQLException
-     */
-    public ArrayList<Integer> getOverdueCustomers() throws SQLException{
-        setHashMaps();
-        ArrayList<Integer> lateCustomer_id = new ArrayList<>();
-        ArrayList<Customer> lateCustomer = new ArrayList<>();
 
-        for (Map.Entry overDueMap : oldInvoicesSum.entrySet()) {
-            int customerId = (int) overDueMap.getKey();
-            int invoiceAmount = (int) overDueMap.getValue();
-            int transAmount = allTransactionsMap.get(customerId);
-            if(invoiceAmount > transAmount) {
-                lateCustomer_id.add(customerId);
-            }
-        }
-        return lateCustomer_id;
-    }
 
     public ArrayList<Customer> createCustomersObjects() throws SQLException {
 
@@ -388,7 +369,6 @@ public class Metoder {
         List<Integer> payedInvoicesList = new ArrayList<>();
         List<Invoice> newInvoices = new ArrayList<>();
 
-
         try {
             con.setAutoCommit(false);
 
@@ -410,100 +390,33 @@ public class Metoder {
                 //invoicelist innehåller nu all overdue invoiceID som inte betalats
                 //invoiceList.removeAll(payedInvoicesList);
 
-
-
                 for(int i = 0; i < invoiceList.size(); i++) {
                     PreparedStatement statement = con.prepareStatement("SELECT * FROM nova_test_schema.invoices WHERE invoice_id = ?");
                     statement.setInt(1, invoiceList.get(i));
                     ResultSet resultSet = statement.executeQuery();
                     resultSet.next();
 
-                        int invoiceAmount = resultSet.getInt("amortization_amount");
-                        double interestAmount = resultSet.getDouble("interest_amount");
-                        double totalAmount = resultSet.getDouble("total_amount");
-                        double amortizationAmount = resultSet.getDouble("amortization_amount");
-                        invoiceAmount += resultSet.getDouble("invoice_fee");
-                        int invoiceID = resultSet.getInt("invoice_id");
+                    int invoiceAmount = resultSet.getInt("amortization_amount");
+                    double interestAmount = resultSet.getDouble("interest_amount");
+                    double totalAmount = resultSet.getDouble("total_amount");
+                    double amortizationAmount = resultSet.getDouble("amortization_amount");
+                    invoiceAmount += resultSet.getDouble("invoice_fee");
+                    int invoiceID = resultSet.getInt("invoice_id");
 
 
-                        statement = con.prepareStatement("SELECT * FROM nova_test_schema.transactions WHERE invoice_id = ?");
-                        statement.setInt(1, invoiceList.get(i));
-                        ResultSet resultSet2 = statement.executeQuery();
+                    statement = con.prepareStatement("SELECT * FROM nova_test_schema.transactions WHERE invoice_id = ?");
+                    statement.setInt(1, invoiceList.get(i));
+                    ResultSet resultSet2 = statement.executeQuery();
 
-                        int shortage;
+                    int shortage;
 
-                        if(resultSet2.next()) {
-                            int transactionAmount = resultSet2.getInt("transaction_amount");
+                    if(resultSet2.next()) {
+                        int transactionAmount = resultSet2.getInt("transaction_amount");
 
-                            //För lite batalt
-                            if(transactionAmount != invoiceAmount) {
-                                //Invoice objekt
-                                shortage = invoiceAmount - transactionAmount;
-                                Customer cus = createCustomerObject(customerId);
-                                String firstName = cus.getFirstName();
-                                String lastName = cus.getLastName();
-                                String email = cus.getEmail();
-                                int previousInvoice = invoiceList.get(i);
-                                int bookingID = cus.getInvoiceAndBookingId().get(previousInvoice);
-                                Invoice newInvoice = new Invoice(firstName, lastName, email, customerId, bookingID, previousInvoice, shortage, totalAmount, amortizationAmount);
-                                newInvoices.add(newInvoice);
-
-                                //Sql databasen
-                                Date date = new Date();
-                                Timestamp timeNow = new Timestamp(date.getTime());
-                                Faker faker = new Faker(new Locale("sv-SE"));
-                                long intocr = faker.number().numberBetween(10000000, 100000000);
-                                String ocr = intocr + "";
-
-                                try {
-                                    con.setAutoCommit(false);
-                                            PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.invoices" +
-                                                    "(" +
-                                                    "booking_id, " +
-                                                    "invoice_date, " +
-                                                    "ocr," +
-                                                    "total_amount," +
-                                                    "interest_amount," +
-                                                    "amortization_amount," +
-                                                    "late_charge," + //7
-                                                    "late_interest," + //8
-                                                    "previous_invoice," + //9
-                                                    "invoice_fee," + //10
-                                                    "due_date," +  //11
-                                                    "pdf_path" +//12
-                                                    ")" +
-                                                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
-
-
-                                            stmt.setInt(1,bookingID);
-                                            stmt.setTimestamp(2, timeNow);
-                                            stmt.setString(3, ocr);
-                                            stmt.setDouble(4, totalAmount + shortage);
-                                            stmt.setDouble(5, interestAmount);
-                                            stmt.setDouble(6, amortizationAmount);
-                                            stmt.setDouble(7, newInvoice.getLateCharge());
-                                            stmt.setDouble(8, newInvoice.getLateInterest());
-                                            stmt.setInt(9, newInvoice.getPreviousInvoice());
-                                            stmt.setDouble(10, newInvoice.getInvoiceFee());
-                                            stmt.setTimestamp(11, newInvoice.getDueDate());
-                                            stmt.setString(12, "pathiPath!");
-                                            stmt.executeUpdate();
-
-                                    con.commit();
-
-                                } catch (Exception e) {
-                                    System.out.println("Error:" + e.getMessage());
-                                    con.rollback();
-                                    System.out.println("Rollback!!");
-                                }
-
-                            }
-
-
-                        }else {   //Fakturan inte batld.
-
+                        //För lite batalt
+                        if(transactionAmount != invoiceAmount) {
                             //Invoice objekt
-                            shortage = invoiceAmount;
+                            shortage = invoiceAmount - transactionAmount;
                             Customer cus = createCustomerObject(customerId);
                             String firstName = cus.getFirstName();
                             String lastName = cus.getLastName();
@@ -563,8 +476,73 @@ public class Metoder {
                             }
 
                         }
-                }
 
+
+                    }
+                    else {   //Fakturan inte batld.
+
+                        //Invoice objekt
+                        shortage = invoiceAmount;
+                        Customer cus = createCustomerObject(customerId);
+                        String firstName = cus.getFirstName();
+                        String lastName = cus.getLastName();
+                        String email = cus.getEmail();
+                        int previousInvoice = invoiceList.get(i);
+                        int bookingID = cus.getInvoiceAndBookingId().get(previousInvoice);
+                        Invoice newInvoice = new Invoice(firstName, lastName, email, customerId, bookingID, previousInvoice, shortage, totalAmount, amortizationAmount);
+                        newInvoices.add(newInvoice);
+
+                        //Sql databasen
+                        Date date = new Date();
+                        Timestamp timeNow = new Timestamp(date.getTime());
+                        Faker faker = new Faker(new Locale("sv-SE"));
+                        long intocr = faker.number().numberBetween(10000000, 100000000);
+                        String ocr = intocr + "";
+
+                        try {
+                            con.setAutoCommit(false);
+                            PreparedStatement stmt = con.prepareStatement("INSERT INTO nova_test_schema.invoices" +
+                                    "(" +
+                                    "booking_id, " +
+                                    "invoice_date, " +
+                                    "ocr," +
+                                    "total_amount," +
+                                    "interest_amount," +
+                                    "amortization_amount," +
+                                    "late_charge," + //7
+                                    "late_interest," + //8
+                                    "previous_invoice," + //9
+                                    "invoice_fee," + //10
+                                    "due_date," +  //11
+                                    "pdf_path" +//12
+                                    ")" +
+                                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
+
+
+                            stmt.setInt(1,bookingID);
+                            stmt.setTimestamp(2, timeNow);
+                            stmt.setString(3, ocr);
+                            stmt.setDouble(4, totalAmount + shortage);
+                            stmt.setDouble(5, interestAmount);
+                            stmt.setDouble(6, amortizationAmount);
+                            stmt.setDouble(7, newInvoice.getLateCharge());
+                            stmt.setDouble(8, newInvoice.getLateInterest());
+                            stmt.setInt(9, newInvoice.getPreviousInvoice());
+                            stmt.setDouble(10, newInvoice.getInvoiceFee());
+                            stmt.setTimestamp(11, newInvoice.getDueDate());
+                            stmt.setString(12, "pathiPath!");
+                            stmt.executeUpdate();
+
+                            con.commit();
+
+                        } catch (Exception e) {
+                            System.out.println("Error:" + e.getMessage());
+                            con.rollback();
+                            System.out.println("Rollback!!");
+                        }
+
+                    }
+                }
             }
             con.commit();
 
