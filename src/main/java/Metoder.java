@@ -369,6 +369,16 @@ public class Metoder {
         List<Integer> payedInvoicesList = new ArrayList<>();
         List<Invoice> newInvoices = new ArrayList<>();
 
+        //FACTORY PATTERN
+        EmailClientFactory emailClientFactory = new EmailClientFactory();
+        EmailClient emailClient = emailClientFactory.createEmailClient();
+        emailClient.sendInvoice();
+
+        // Utan factory pattern
+
+        MailgunEmailClient mailgunEmailClient = new MailgunEmailClient();
+        mailgunEmailClient.sendInvoice();
+
         try {
             con.setAutoCommit(false);
 
