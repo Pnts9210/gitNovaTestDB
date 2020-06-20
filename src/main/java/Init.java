@@ -134,16 +134,6 @@ public class Init {
         }
     }
 
-    public void sendWelcomeEmails() {
-        EmailClientFactory emailClientFactory = new EmailClientFactory();
-        EmailClient emailClient = emailClientFactory.createEmailClient();
-        emailClient.sendWelcomeEmail("p.norderheim@gmail.com");
-
-        // utan factory
-        MailgunEmailClient mailgunEmailClient = new MailgunEmailClient();
-        mailgunEmailClient.sendWelcomeEmail("p.norderheim@gmail.com");
-    }
-
     public void createUserObjects(int customerAmount){
         for(int i = 0; i < customerAmount; i++)
             userArr.add(new User());

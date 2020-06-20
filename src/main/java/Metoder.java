@@ -1,10 +1,7 @@
-import com.github.javafaker.Faker;
-
+import java.io.IOException;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Metoder {
 
@@ -91,8 +88,6 @@ public class Metoder {
         }
         return lateCustomer_id;
     }
-
-
 
     public ArrayList<Customer> createCustomersObjects() throws SQLException {
 
@@ -351,7 +346,7 @@ public class Metoder {
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());
             con.rollback();
-            System.out.println("Rollback!!");
+            System.out.println("Rollback!!1");
         } finally {
             con.setAutoCommit(true);
             con.close();
@@ -360,7 +355,7 @@ public class Metoder {
         return customers;
     }
 
-    public List<Invoice> makeLateInvoice() throws SQLException{
+    public List<Invoice> makeLateInvoiceList() throws SQLException{
 
         Connection con = DriverManager.getConnection("jdbc:postgresql:nova_test_db", "postgres", "myPassword");
 
@@ -368,16 +363,6 @@ public class Metoder {
         List<Integer> invoiceList = new ArrayList<>();
         List<Integer> payedInvoicesList = new ArrayList<>();
         List<Invoice> newInvoices = new ArrayList<>();
-
-        //FACTORY PATTERN
-        EmailClientFactory emailClientFactory = new EmailClientFactory();
-        EmailClient emailClient = emailClientFactory.createEmailClient();
-        emailClient.sendInvoice();
-
-        // Utan factory pattern
-
-        MailgunEmailClient mailgunEmailClient = new MailgunEmailClient();
-        mailgunEmailClient.sendInvoice();
 
         try {
             con.setAutoCommit(false);
@@ -436,7 +421,9 @@ public class Metoder {
                             Invoice newInvoice = new Invoice(firstName, lastName, email, customerId, bookingID, previousInvoice, shortage, totalAmount, amortizationAmount);
                             newInvoices.add(newInvoice);
 
+
                             //Sql databasen
+                            /*
                             Date date = new Date();
                             Timestamp timeNow = new Timestamp(date.getTime());
                             Faker faker = new Faker(new Locale("sv-SE"));
@@ -482,9 +469,9 @@ public class Metoder {
                             } catch (Exception e) {
                                 System.out.println("Error:" + e.getMessage());
                                 con.rollback();
-                                System.out.println("Rollback!!");
+                                System.out.println("Rollback!!2");
                             }
-
+*/
                         }
 
 
@@ -503,6 +490,7 @@ public class Metoder {
                         newInvoices.add(newInvoice);
 
                         //Sql databasen
+                        /*
                         Date date = new Date();
                         Timestamp timeNow = new Timestamp(date.getTime());
                         Faker faker = new Faker(new Locale("sv-SE"));
@@ -548,9 +536,9 @@ public class Metoder {
                         } catch (Exception e) {
                             System.out.println("Error:" + e.getMessage());
                             con.rollback();
-                            System.out.println("Rollback!!");
+                            System.out.println("Rollback!!3");
                         }
-
+*/
                     }
                 }
             }
@@ -559,13 +547,59 @@ public class Metoder {
         } catch (Exception e) {
             System.out.println("Error:" + e.getMessage());
             con.rollback();
-            System.out.println("Rollback!!");
+            System.out.println("Rollback!!4");
         } finally {
             con.setAutoCommit(true);
             con.close();
-
         }
-        return newInvoices;
+        return compileInvoiceListToOneInvoice(newInvoices);
+    }
+
+    public void sendLateInvoices() throws SQLException, IOException {
+
+        List<Invoice> invoices = makeLateInvoiceList();
+        System.out.println("invoice sent: " + invoices);
+
+        for(int i = 0; i < invoices.size(); i++){
+            //FACTORY PATTERN
+            EmailClientFactory emailClientFactory = new EmailClientFactory();
+            EmailClient emailClient = emailClientFactory.createEmailClient();
+            emailClient.sendInvoice(invoices.get(i));
+        }
+
+
+    }
+
+    public List<Invoice> compileInvoiceListToOneInvoice(List<Invoice> invoiceList){
+
+        List<Invoice> compiledInvoiceList = new ArrayList<>();
+
+        for (int i = 0; i < invoiceList.size(); i++) {
+            String name =  invoiceList.get(i).getFirtsName() + " " + invoiceList.get(i).getLastaName();
+            double latePayAmount = invoiceList.get(i).getLatePayAmount();
+            boolean found = false;
+            for (int j = 0; j < compiledInvoiceList.size(); j++) {
+                if ((compiledInvoiceList.get(j).getFirtsName() + " " + compiledInvoiceList.get(j).getLastaName()).equals(name)) {
+                    found = true;
+                }
+                if(found){
+                    double alredyExictsingLatePayment = compiledInvoiceList.get(j).getLatePayAmount();
+                    latePayAmount += alredyExictsingLatePayment;
+                    compiledInvoiceList.get(j).setLatePayAmount(latePayAmount);
+                    break;
+                }
+            }
+            if(!found) {
+                compiledInvoiceList.add(invoiceList.get(i));
+            }
+        }
+
+        return compiledInvoiceList;
+
+    }
+
+    public void insertLateInvoiceInDB(List<Invoice> invoiceList){
+
     }
 
 

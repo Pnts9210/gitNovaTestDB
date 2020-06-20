@@ -28,7 +28,6 @@ public class Customer {
 
 
 
-
     public Customer(String firstName, String lastName, int applicantID, String email, ArrayList<Integer> applicationsIDs, HashMap<Integer, Integer> informationAndApplicationIDs, HashMap<Integer, Integer> offerAndApplicationIDs, HashMap<Integer, Integer> bookingAndOfferIDs, int customerID, HashMap<Integer, Integer> invoiceAndBookingId, HashMap<Integer, Integer> transactionAndCustomerIDs, HashMap<Integer, Integer> transactionAndBookingIDs, HashMap<Integer, Integer> transactionAndInvoiceIDs) {
         this.firstName = firstName;
         this.lastName = lastName;

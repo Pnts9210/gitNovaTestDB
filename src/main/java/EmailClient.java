@@ -1,4 +1,6 @@
+import java.io.IOException;
+
 public interface EmailClient {
-    void sendInvoice(Invoice invoice);
-    void sendWelcomeEmail(String emailAddress);
+    int sendInvoice(Invoice invoice) throws IOException;
+    void sendWelcomeEmail(String emailAddress) throws IOException;
 }

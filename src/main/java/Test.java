@@ -57,15 +57,17 @@ public class Test {
         Metoder metoder = new Metoder();
         //Invoice invoice = new Invoice();
 
-        init.createSchema(true, 20);
-       // System.out.println(metoder.getOverdueCustomerId());
+        init.createSchema(true, 2);
+        metoder.sendLateInvoices();
 
 
-        //System.out.println(metoder.createCustomersObjects().toString());
+        /*
+        //FACTORY PATTERN
+        EmailClientFactory emailClientFactory = new EmailClientFactory();
+        EmailClient emailClient = emailClientFactory.createEmailClient();
+        emailClient.sendInvoice(invoices.get(0));
 
-        System.out.println(metoder.makeLateInvoice());
-
-
+*/
 
 
 
